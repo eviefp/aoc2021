@@ -1,93 +1,84 @@
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE DerivingVia #-}
+{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards #-}
+
 module Main where
 
-import Data.Foldable
+import Data.Maybe (fromMaybe)
 import Data.Monoid
+import Data.Text (Text)
+import qualified Data.Text.IO as T
+import Data.Void
+import Text.Megaparsec
+import Text.Megaparsec.Char
+import Text.Megaparsec.Char.Lexer
 
 main :: IO ()
-main = solution2'
+main = solution1
 
-{-
-1
-2
-1
-4
-5
-
-1 < 2  ? True
-2 < 1  ? False
-1 < 4  ? True
-4 < 5  ? True
-5
--}
 solution1 :: IO ()
 solution1 = do
-  numberList <- getListOfDepths
-  let increases = zipWith (<) numberList (tail numberList)
-      numberOfIncreases = length $ filter (== True) increases
-
-  print numberOfIncreases
-
-solution1' :: IO ()
-solution1' = do
-  numberList <- getListOfDepths
-  let increases = fold $ zipWith go numberList (tail numberList)
-
-  print increases
+  contents <- T.readFile "day2-1-input"
+  let directions = parseMaybe parseDirections contents
+  case directions of
+    Nothing -> putStrLn "Parse error"
+    Just result -> do
+      let endPosition = foldl go mempty result
+          answer = getSum (forward endPosition) * getSum (depth endPosition)
+      print answer
   where
-    go a b
-      | a < b = Sum 1
-      | otherwise = Sum 0
+    go :: Position -> Direction -> Position
+    go current@Position {..} d =
+      let delta = directionToPosition (getSum aim) d
+       in current <> delta
 
-{-
-1
-2
-1
-4
-5
+data Position = Position
+  { forward :: Sum Int,
+    depth :: Sum Int,
+    aim :: Sum Int
+  }
+  deriving (Show)
 
-1 + 2 + 1   =  ????
-2 + 1 + 4
-1 + 4 + 5
-4 + 5
-5
+-- TODO: ask
+-- data Position' = Position'
+--   { forward' :: Sum Int,
+--     depth' :: Sum Int,
+--     aim' :: Sum Int
+--   }
+--   deriving (Show)
+--   deriving (Semigroup, Monoid) via (Sum Int, Sum Int, Sum Int)
 
-Alternate idea:
-------------
+instance Semigroup Position where
+  p1 <> p2 =
+    Position (forward p1 <> forward p2) (depth p1 <> depth p2) (aim p1 <> aim p2)
 
-A = a + b + c
-B = b + c + d
+instance Monoid Position where
+  mempty = Position mempty mempty mempty
 
-'b' and 'c' are irrelevant so we can just compare 'a' and 'd'
--}
-solution2 :: IO ()
-solution2 = do
-  numberList <- getListOfDepths
-  let slidingWindowList =
-        zipWith3
-          add3
-          numberList
-          (tail numberList)
-          (drop 2 numberList)
-      increases = zipWith (<) slidingWindowList (tail slidingWindowList)
-      numberOfIncreases = length $ filter (== True) increases
+data Direction = Forward Int | Up Int | Down Int
+  deriving (Show)
 
-  print numberOfIncreases
+type Parser a = Parsec Void Text a
+
+parseDirections :: Parser [Direction]
+parseDirections = many parseDirection
+
+parseDirection :: Parser Direction
+parseDirection = go "forward" Forward <|> go "up" Up <|> go "down" Down
   where
-    add3 :: Int -> Int -> Int -> Int
-    add3 a b c = a + b + c
+    go :: Text -> (Int -> Direction) -> Parser Direction
+    go text ctor = do
+      string text
+      space1
+      value <- decimal
+      space1
+      pure $ ctor value
 
-getListOfDepths :: IO [Int]
-getListOfDepths = do
-  contents <- readFile "day1-1-input"
-  pure $ read <$> lines contents
-
-solution2' :: IO ()
-solution2' = do
-  numberList <- getListOfDepths
-  let increases = fold $ zipWith go numberList (drop 3 numberList)
-
-  print increases
-  where
-    go a b
-      | a < b = Sum 1
-      | otherwise = Sum 0
+directionToPosition :: Int -> Direction -> Position
+directionToPosition aim =
+  \case
+    Forward n -> Position (Sum n) (Sum (aim * n)) 0
+    Up n -> Position 0 0 (Sum (- n))
+    Down n -> Position 0 0 (Sum n)
