@@ -1,4 +1,7 @@
 cradle:
   cabal:
+    - path: "lib"
+      component: "lib:aoc2021"
+
     - path: "app/Main.hs"
       component: "aoc2021:exe:aoc2021"

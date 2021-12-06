@@ -19,7 +19,28 @@ maintainer:         me@eevie.ro
 -- A copyright notice.
 -- copyright:
 -- category:
-extra-source-files: CHANGELOG.md
+extra-source-files:
+    CHANGELOG.md
+    README.md
+
+library
+    exposed-modules:  Day1
+                    , Day2
+                    , Day3
+                    , Day4
+                    , Day5
+
+
+    -- Modules included in this library but not exported.
+    -- other-modules:
+
+    -- LANGUAGE extensions used by modules in this package.
+    -- other-extensions:
+    build-depends:    base ^>=4.14.3.0,
+                      megaparsec,
+                      text
+    hs-source-dirs:   lib
+    default-language: Haskell2010
 
 executable aoc2021
     main-is:          Main.hs
@@ -29,8 +50,9 @@ executable aoc2021
 
     -- LANGUAGE extensions used by modules in this package.
     -- other-extensions:
-    build-depends:    base ^>=4.14.3.0
-                    , megaparsec
-                    , text
+    build-depends:
+        base ^>=4.14.3.0,
+        aoc2021,
+
     hs-source-dirs:   app
     default-language: Haskell2010
