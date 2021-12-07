@@ -24,7 +24,10 @@ type Parser a = Parsec Void Text a
 -- Parsers
 
 ----------------------------------------------------------------
--- Solution
+-- Solution1
+
+----------------------------------------------------------------
+-- Solution2
 
 ----------------------------------------------------------------
 -- Main
@@ -35,3 +38,6 @@ main = do
   case input of
     Left err -> mempty
     Right lines -> mempty
+
+-- putStrLn $ "Solution 1: " <> show (solution1 undefined)
+-- putStrLn $ "Solution 2: " <> show (solution2 undefined)
