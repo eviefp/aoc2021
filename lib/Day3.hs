@@ -23,15 +23,15 @@ main = do
     Nothing -> error "bad parse"
     Just parseResult -> do
       let transposed = transpose parseResult
-          -- oxygen = it (maybe True id) transposed 0
-          co2 = it (maybe False not) transposed 0
-      -- print $ toNumber' $ transpose oxygen
+          oxygen = solution (maybe True id) transposed 0
+          co2 = solution (maybe False not) transposed 0
+      print $ transpose oxygen
       print $ transpose co2
+      print $ toNumber' $ transpose oxygen
+      print $ toNumber' $ transpose co2
 
--- print $ toNumber' $ transpose co2
-
--- let result = toNumber' (transpose oxygen) * toNumber' (transpose co2)
--- print result
+      let result = toNumber' (transpose oxygen) * toNumber' (transpose co2)
+      print result
 
 type Parser a = Parsec Void Text a
 
@@ -56,21 +56,22 @@ fromSum x
   | otherwise = Just $ x > 0
 
 toNumber :: [Bool] -> Int
-toNumber = foldl (\x digit -> 2 * x + bool 1 0 digit) 0
+toNumber bits = foldl (\x (digit, num) -> x + 2 ^ num * bool 0 1 digit) 0 $ zip bits (reverse [0 .. length bits - 1])
 
 toNumber' :: [[Bool]] -> Int
 toNumber' [x] = toNumber x
 toNumber' _ = error "expected single result"
 
-it :: (Maybe Bool -> Bool) -> [[Bool]] -> Int -> [[Bool]]
-it _ [x] _ = [x]
-it keep xs idx
+solution :: (Maybe Bool -> Bool) -> [[Bool]] -> Int -> [[Bool]]
+solution _ [x] _ = [x]
+solution keep xs idx
+  | length (transpose xs) == 1 = xs
   | idx < length xs =
     let result = transpose $ filter ((== keep commonDigit) . (!! idx)) $ transpose xs
-     in D.trace (stuff result) $
-          if length (head result) /= length (head xs)
-            then it keep result 0
-            else it keep result (idx + 1)
+     in solution keep result (idx + 1)
+  -- if length (head result) /= length (head xs)
+  --   then solution keep result 0
+  --   else solution keep result (idx + 1)
   | otherwise = xs
   where
     commonDigit = findMostCommonDigit $ xs !! idx
@@ -78,10 +79,12 @@ it keep xs idx
     stuff result =
       unlines
         [ printLine $ xs !! idx,
+          "-------",
+          unlines $ printLine <$> result,
           show idx,
-          printLine $ result !! idx,
+          -- printLine $ result !! idx,
           show commonDigit,
-          printLine $ head $ transpose result,
+          show $ keep commonDigit,
           "--------------------------------"
         ]
 
@@ -96,3 +99,5 @@ findMostCommonDigit = fromSum . foldMap toSum
 --  - we don't need to pass the f & g functions to 'it'
 --  - we need to pass a way to figure out if we keep most or least common
 --  - we need to pass a way to figure out what we do in case of "just as many"
+testData :: Text
+testData = "00100\n11110\n10110\n10111\n10101\n01111\n00111\n11100\n10000\n11001\n00010\n01010\n"
