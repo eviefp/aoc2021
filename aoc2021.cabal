@@ -31,6 +31,7 @@ library
                     , Day5
                     , Day6
                     , Day7
+                    , Day8
 
 
     -- Modules included in this library but not exported.
@@ -39,8 +40,10 @@ library
     -- LANGUAGE extensions used by modules in this package.
     -- other-extensions:
     build-depends:    base ^>=4.14.3.0,
+                      containers,
                       hashable,
                       megaparsec,
+                      newtype-generics,
                       unordered-containers,
                       text
     hs-source-dirs:   lib
