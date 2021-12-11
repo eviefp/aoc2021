@@ -8,7 +8,8 @@ import qualified Day5 as Day5
 import qualified Day6 as Day6
 import qualified Day7 as Day7
 import qualified Day8 as Day8
+import qualified Day9 as Day9
 
 main :: IO ()
 main = do
-  Day8.main
+  Day9.main
