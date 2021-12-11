@@ -52,7 +52,6 @@ solution1 hm = execState (go steps hm) 0
     go 0 h = pure h
     go n h = do
       r <- step h
-      get >>= \x -> D.traceM (show (steps - n) <> ": " <> show x)
       go (n -1) r
     steps = 100
 
