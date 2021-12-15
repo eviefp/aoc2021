@@ -37,6 +37,8 @@ library
                     , Day11
                     , Day12
                     , Day13
+                    , Day14
+                    , Day15
 
 
     -- Modules included in this library but not exported.
@@ -51,6 +53,7 @@ library
                       megaparsec,
                       newtype-generics,
                       transformers,
+                      search-algorithms,
                       unordered-containers,
                       text
     hs-source-dirs:   lib

@@ -1,3 +1,7 @@
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TupleSections #-}
 
@@ -33,11 +37,11 @@ type Parser a = Parsec Void Text a
 -- Main
 main :: IO ()
 main = do
-  contents <- T.readFile "dayX-1-input"
+  contents <- T.readFile "day1X-1-input"
   let input = parse undefined "" contents
   case input of
     Left err -> mempty
-    Right lines -> mempty
+    Right input -> mempty
 
 -- putStrLn $ "Solution 1: " <> show (solution1 undefined)
 -- putStrLn $ "Solution 2: " <> show (solution2 undefined)
