@@ -1,3 +1,4 @@
 # Advent of Code 2021
 
-Day 1: 72fb21a3aa1c3b3efec1253dcd09347bf3a9402e
+Yes I accidentally nuked day13, but I got the stars already and I am
+not doing it again.
