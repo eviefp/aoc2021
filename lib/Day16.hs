@@ -1,9 +1,13 @@
+{-# LANGUAGE DeriveFoldable #-}
+{-# LANGUAGE DeriveFunctor #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TupleSections #-}
+{-# LANGUAGE TypeFamilies #-}
 
 module Day16 where
 
@@ -11,7 +15,9 @@ import Control.Monad (replicateM)
 import Data.Bool (bool)
 import Data.Foldable
 import Data.Function (on)
+import Data.Functor.Foldable (Base, Recursive (cata, project))
 import Data.List
+import Data.Monoid (Sum (getSum))
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.IO as T
@@ -25,31 +31,86 @@ type Parser a = Parsec Void Text a
 
 ----------------------------------------------------------------
 -- Types
-data Packet = Packet
+data Packet a = Packet
   { pkVersion :: Version,
-    pkContent :: Content
+    pkContent :: Content a
   }
-  deriving (Show)
+  deriving (Show, Functor, Foldable)
 
 newtype Version = Version
   { getVersion :: Int
   }
   deriving (Show)
 
-data Content
-  = Literal Int
-  | Sum [Packet]
-  | Product [Packet]
-  | Minimum [Packet]
-  | Maximum [Packet]
-  | Greater [Packet]
-  | Less [Packet]
-  | Equals [Packet]
-  deriving (Show)
+data Content a
+  = Literal a
+  | Sum [Packet a]
+  | Product [Packet a]
+  | Minimum [Packet a]
+  | Maximum [Packet a]
+  | Greater [Packet a]
+  | Less [Packet a]
+  | Equals [Packet a]
+  deriving (Show, Functor, Foldable)
+
+data PacketV b = PacketV
+  { pVer :: Version,
+    pRec :: [b]
+  }
+  deriving (Functor)
+
+type instance Base (Packet a) = PacketV
+
+instance Recursive (Packet a) where
+  project Packet {..} = PacketV pkVersion (getPackets pkContent)
+
+data PacketLit a b
+  = PLLit a
+  | PLSum [b]
+  | PLProd [b]
+  | PLMin [b]
+  | PLMax [b]
+  | PLGT b b
+  | PLLT b b
+  | PLEQ b b
+  deriving (Functor)
+
+newtype PacketCalc a = PacketCalc (Packet a)
+  deriving (Functor)
+
+type instance Base (PacketCalc a) = PacketLit a
+
+instance Recursive (PacketCalc a) where
+  project (PacketCalc Packet {..}) = mkPacketLit pkContent
+
+mkPacketLit :: Content a -> PacketLit a (PacketCalc a)
+mkPacketLit =
+  \case
+    (Literal a) -> PLLit a
+    (Sum pas) -> PLSum $ PacketCalc <$> pas
+    (Product pas) -> PLProd $ PacketCalc <$> pas
+    (Minimum pas) -> PLMin $ PacketCalc <$> pas
+    (Maximum pas) -> PLMax $ PacketCalc <$> pas
+    (Greater [p1, p2]) -> PLGT (PacketCalc p1) (PacketCalc p2)
+    (Less [p1, p2]) -> PLLT (PacketCalc p1) (PacketCalc p2)
+    (Equals [p1, p2]) -> PLEQ (PacketCalc p1) (PacketCalc p2)
+    _ -> error "unexpected"
+
+getPackets :: Content a -> [Packet a]
+getPackets =
+  \case
+    (Literal a) -> []
+    (Sum pas) -> pas
+    (Product pas) -> pas
+    (Minimum pas) -> pas
+    (Maximum pas) -> pas
+    (Greater pas) -> pas
+    (Less pas) -> pas
+    (Equals pas) -> pas
 
 ----------------------------------------------------------------
 -- Parsers
-parsePacket :: Parser Packet
+parsePacket :: Parser (Packet Int)
 parsePacket = do
   version <- Version <$> parse3DigitNumber
   typeId <- parse3DigitNumber
@@ -64,7 +125,7 @@ parsePacket = do
     7 -> parseOperator Equals
   pure $ Packet version contents
 
-parseOperator :: ([Packet] -> Content) -> Parser Content
+parseOperator :: ([Packet Int] -> Content Int) -> Parser (Content Int)
 parseOperator ctor =
   binDigitChar >>= \case
     '0' -> parseType0
@@ -75,14 +136,14 @@ parseOperator ctor =
     parseBits 0 = pure ""
     parseBits n = (:) <$> binDigitChar <*> parseBits (n -1)
 
-    parseType0 :: Parser Content
+    parseType0 :: Parser (Content Int)
     parseType0 = do
       length <- stringToInt <$> parseBits 15
       contents <- T.pack <$> parseBits length
       let x = concat $ parseMaybe (many parsePacket) contents
       pure $ ctor x
 
-    parseType1 :: Parser Content
+    parseType1 :: Parser (Content Int)
     parseType1 = do
       count <- stringToInt <$> parseBits 11
       ctor <$> replicateM count parsePacket
@@ -106,7 +167,7 @@ stringToInt bits =
   foldl (\x (digit, num) -> x + 2 ^ num * toInt digit) 0 $
     zip bits (reverse [0 .. length bits - 1])
 
-parseLiteral :: Parser Content
+parseLiteral :: Parser (Content Int)
 parseLiteral = do
   Literal . stringToInt <$> parseBlocks
   where
@@ -124,35 +185,28 @@ parseLiteral = do
 ----------------------------------------------------------------
 -- Solution1
 
-solution1 :: Packet -> Int
-solution1 = \case
-  (Packet ver con) -> case con of
-    (Literal n) -> getVersion ver
-    (Sum pas) -> getVersion ver + go pas
-    (Product pas) -> getVersion ver + go pas
-    (Minimum pas) -> getVersion ver + go pas
-    (Maximum pas) -> getVersion ver + go pas
-    (Greater pas) -> getVersion ver + go pas
-    (Less pas) -> getVersion ver + go pas
-    (Equals pas) -> getVersion ver + go pas
+solution1 :: Packet Int -> Int
+solution1 = cata go
   where
-    go :: [Packet] -> Int
-    go = sum . fmap solution1
+    go :: PacketV Int -> Int
+    go (PacketV ver ns) = getVersion ver + sum ns
 
 ----------------------------------------------------------------
 -- Solution2
-solution2 :: Packet -> Int
-solution2 = \case
-  (Packet ver con) -> case con of
-    (Literal n) -> n
-    (Sum pas) -> sum (solution2 <$> pas)
-    (Product pas) -> product (solution2 <$> pas)
-    (Minimum pas) -> minimum (solution2 <$> pas)
-    (Maximum pas) -> maximum (solution2 <$> pas)
-    (Greater [p1, p2]) -> bool 0 1 $ solution2 p1 > solution2 p2
-    (Less [p1, p2]) -> bool 0 1 $ solution2 p1 < solution2 p2
-    (Equals [p1, p2]) -> bool 0 1 $ solution2 p1 == solution2 p2
-    _ -> error "unexpected nr of args"
+solution2 :: Packet Int -> Int
+solution2 = cata go . PacketCalc
+  where
+    go :: PacketLit Int Int -> Int
+    go =
+      \case
+        (PLLit n) -> n
+        (PLSum ns) -> sum ns
+        (PLProd ns) -> product ns
+        (PLMin ns) -> minimum ns
+        (PLMax ns) -> maximum ns
+        (PLGT n i) -> bool 0 1 $ n > i
+        (PLLT n i) -> bool 0 1 $ n < i
+        (PLEQ n i) -> bool 0 1 $ n == i
 
 ----------------------------------------------------------------
 -- Main

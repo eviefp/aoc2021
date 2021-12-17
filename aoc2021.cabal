@@ -54,6 +54,7 @@ library
                       hashable,
                       megaparsec,
                       newtype-generics,
+                      recursion-schemes,
                       transformers,
                       search-algorithms,
                       unordered-containers,
