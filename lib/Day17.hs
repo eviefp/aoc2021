@@ -85,7 +85,7 @@ intersectingPaths bounds = filter (any intersectsBounds) allPaths
     plausibleVelocities :: [Velocity]
     plausibleVelocities =
       [ Velocity x y
-        | x <- [0 .. 70],
+        | x <- [5 .. 70],
           y <- [-225 .. 1000]
       ]
 
