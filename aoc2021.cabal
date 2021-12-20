@@ -40,7 +40,9 @@ library
                     , Day14
                     , Day15
                     , Day16
+                    , Day161
                     , Day17
+                    , Day18
 
 
     -- Modules included in this library but not exported.
@@ -50,9 +52,12 @@ library
     -- other-extensions:
     build-depends:    base ^>=4.14.3.0,
                       containers,
+                      data-fix,
                       extra,
+                      free,
                       hashable,
                       megaparsec,
+                      mtl,
                       newtype-generics,
                       recursion-schemes,
                       transformers,
