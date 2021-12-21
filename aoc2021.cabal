@@ -43,6 +43,7 @@ library
                     , Day161
                     , Day17
                     , Day18
+                    , Day20
 
 
     -- Modules included in this library but not exported.

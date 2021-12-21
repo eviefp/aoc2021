@@ -91,10 +91,10 @@ solution2 input =
       topBasins = take 3 . reverse . sort . fmap Set.size $ basins
    in product topBasins
 
-toCoordinates :: [[Int]] -> HashMap Point Int
+toCoordinates :: [[a]] -> HashMap Point a
 toCoordinates = HM.fromList . foldMap (zipWith go [0 ..]) . transpose . fmap (zip [0 ..])
   where
-    go :: Int -> (Int, Int) -> (Point, Int)
+    go :: Int -> (Int, a) -> (Point, a)
     go y (x, value) = (Point x y, value)
 
 findMinimumPoints :: HashMap Point Int -> Set Point
