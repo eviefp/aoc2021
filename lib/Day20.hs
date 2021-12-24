@@ -135,10 +135,17 @@ countLights :: Image -> Int
 countLights = length . filter id . Map.elems
 
 solution1 :: Input -> Int
-solution1 Input {enhMap, img} = countLights . enhance enhMap False . enhance enhMap False $ img
+solution1 Input {enhMap, img} = countLights . enhance enhMap True . enhance enhMap False $ img
 
 ----------------------------------------------------------------
 -- Solution2
+
+solution2 :: Input -> Int
+solution2 Input {enhMap, img} = countLights $ go 50 False img
+  where
+    go :: Int -> Bool -> Image -> Image
+    go 0 fill = id
+    go n fill = go (n - 1) (not fill) . enhance enhMap fill
 
 ----------------------------------------------------------------
 -- Main
@@ -151,6 +158,7 @@ main = do
     Left err -> print err
     Right input -> do
       putStrLn $ "Solution 1: " <> show (solution1 input)
+      putStrLn $ "Solution 2: " <> show (solution2 input)
 
 drawMap :: Image -> [String]
 drawMap =

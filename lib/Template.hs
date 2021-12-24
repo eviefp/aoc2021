@@ -1,9 +1,13 @@
+{-# LANGUAGE DeriveFunctor #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TupleSections #-}
+{-# LANGUAGE TypeApplications #-}
 
 module Template where
 
@@ -43,5 +47,5 @@ main = do
     Left err -> mempty
     Right input -> mempty
 
--- putStrLn $ "Solution 1: " <> show (solution1 undefined)
--- putStrLn $ "Solution 2: " <> show (solution2 undefined)
+-- putStrLn $ "Solution 1: " <> show (solution1 input)
+-- putStrLn $ "Solution 2: " <> show (solution2 input)
