@@ -117,8 +117,8 @@ newtype DigitMapping = DigitMapping
   { getDigitMapping :: Signal -> Signal
   }
 
-solution2 :: [([String], [String])] -> Sum Int
-solution2 input = foldMap (Sum . read . fmap digitToSum) $ thing <$> typed'
+solution2 :: [([String], [String])] -> [Char]
+solution2 input = fmap digitToSum $ head $ thing <$> typed'
   where
     typed :: [([WonkyDigit], [WonkyDigit])]
     typed = bimap (fmap toWonkyDigit) (fmap toWonkyDigit) <$> input
@@ -213,7 +213,7 @@ main = do
     Left err -> mempty
     Right lines -> do
       putStrLn $ "Solution 1: " <> show (solution1 lines)
-      putStrLn $ "Solution 2: " <> show (solution2 lines)
+      putStrLn $ "Solution 2: " <> show (solution2 test)
 
 test :: [([String], [String])]
-test = pure (["acedgfb", "cdfbe", "gcdfa", "fbcad", "dab", "cefabd", "cdfgeb", "eafb", "cagedb", "ab"], ["cdfeb"])
+test = pure (["gea", "cbadfeg", "ae", "ecgdbf", "egdcf", "gfbac", "bafdeg", "facdeg", "eacfg", "acde"], ["edfgc", "facgb", "fgace"])

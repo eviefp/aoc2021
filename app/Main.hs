@@ -16,6 +16,7 @@ import qualified Day2 as Day2
 import qualified Day20 as Day20
 import qualified Day21 as Day21
 import qualified Day22 as Day22
+import qualified Day23 as Day23
 import qualified Day3 as Day3
 import qualified Day4 as Day4
 import qualified Day5 as Day5
@@ -26,4 +27,4 @@ import qualified Day9 as Day9
 
 main :: IO ()
 main = do
-  Day22.main
+  Day23.main
